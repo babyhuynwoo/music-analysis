@@ -87,7 +87,7 @@ df = pd.DataFrame(sorted(hertz2keys.items()), columns=['hertz', 'keys'])
 df['octave'] = df['keys'].str.split("_").str[1]
 df['keys'] = df['keys'].str.split("_").str[0]
 
-df.pivot('keys', 'octave', 'hertz')
+df.pivot(index='keys', columns='octave', values='hertz')
 
 test_hz = 445.4745
 
