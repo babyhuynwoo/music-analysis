@@ -20,21 +20,11 @@ def len_to_sec(data_len):
 
 x_second = len_to_sec(data_len)
 
-plt.figure(figsize=(10, 5))
-plt.plot(x_second, data)
-plt.xlabel("time_seconds")
-
-
 def min_max_scaler(array):
     return (array - array.min()) / (array.max() - array.min())
 
+# 진폭을 구한다 (db로 변환)
 power = min_max_scaler(librosa.amplitude_to_db(data))
-
-plt.figure(figsize=(10, 5))
-plt.plot(len_to_sec(data_len), power)
-plt.xlabel("time_seconds")
-plt.ylabel("power")
-
 
 autocorrelation = sm.tsa.acf(data, nlags=2000)
 
@@ -83,12 +73,6 @@ while True:
 
     pitch_num -= 1
 
-df = pd.DataFrame(sorted(hertz2keys.items()), columns=['hertz', 'keys'])
-df['octave'] = df['keys'].str.split("_").str[1]
-df['keys'] = df['keys'].str.split("_").str[0]
-
-df.pivot(index='keys', columns='octave', values='hertz')
-
 test_hz = 445.4745
 
 def herts_to_closed_key(hertz):
@@ -105,12 +89,8 @@ def herts_to_closed_key(hertz):
 
 herts_to_closed_key(test_hz)
 
-duration = 22
-data, sample_rate = librosa.load(path, sr=44100, mono=True, duration=duration)
-
 duration = 22 # 샘플 길이가 22초입니다.
 data, sample_rate = librosa.load(path, sr=44100, mono=True, duration=duration)
-
 
 # 0.01초 단위로 데이터 슬라이싱
 sec = 0.01
@@ -136,7 +116,6 @@ for sample in dataset:
     
     detected_hertz.append(herts_to_closed_key(pitch)) # change hertz to closed key hertz
 
-    
 # task 1
 # 0.1초 단위로 가장 빈도수가 높은 키 하나만 남기기
 def freq_check(array):
@@ -152,7 +131,6 @@ n_rows = duration * trim_sec
 result = np.array(detected_hertz).reshape(n_rows, -1) # (220, 10)
 
 freq_hertz_result = np.array([freq_check(array) for array in result])
-
 
 # task 2
 # n개 단위로 그룹화한 뒤 빈도수 낮은 key값을 제외
@@ -170,21 +148,4 @@ drop_rate = 0.1
 reshaped = freq_hertz_result.reshape(-1, group_size) # (22, 10)
 final_result = freq_check2(reshaped, drop_rate) # length의 10% 이하 빈도수 key값은 제외
 
-
-def delete_continuous_value(array:list):
-    """리스트 내 연속된 값을 제거합니다."""
-    curr_key = ""
-    new_list = []
-    for key in array:
-        if curr_key == key:
-            continue
-        new_list.append(key)
-        curr_key = key
-        
-    return new_list
-
-print(hertz2keys)
-# 주파수를 key값으로 변경합니다.
-print(hertz2keys['Bb_6'])
-final_result = [hertz2keys[hertz] for hertz in final_result]
-print(delete_continuous_value(final_result))
+print(final_result)
