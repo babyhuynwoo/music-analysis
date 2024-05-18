@@ -1,15 +1,17 @@
 import librosa
 import IPython.display
-import matplotlib.pyplot as plt
+import matplotlib as plt
 import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 from scipy.signal import find_peaks
 from collections import Counter
 
-path = "merry_go_round_test.mp3"
+path = "Test_team\Merry-Go-Round_Of_Life.mp3"
 
-duration = 6
+duration = librosa.get_duration(path=path)
+duration = int(duration)
+
 data, sample_rate = librosa.load(path, sr=44100, mono=True, duration=duration)
 
 data_len = len(data)
@@ -89,7 +91,6 @@ def herts_to_closed_key(hertz):
 
 herts_to_closed_key(test_hz)
 
-duration = 22 # 샘플 길이가 22초입니다.
 data, sample_rate = librosa.load(path, sr=44100, mono=True, duration=duration)
 
 # 0.01초 단위로 데이터 슬라이싱
@@ -125,7 +126,7 @@ def freq_check(array):
     
     return result # int
 
-sec = 0.1
+sec = 0.5
 trim_sec = int(1 / sec)
 n_rows = duration * trim_sec
 result = np.array(detected_hertz).reshape(n_rows, -1) # (220, 10)
@@ -143,7 +144,7 @@ def freq_check2(array, threshold:float):
         result = result + temp
     return result # list
 
-group_size = 10
+group_size = len(freq_hertz_result)
 drop_rate = 0.1
 reshaped = freq_hertz_result.reshape(-1, group_size) # (22, 10)
 final_result = freq_check2(reshaped, drop_rate) # length의 10% 이하 빈도수 key값은 제외
