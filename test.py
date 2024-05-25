@@ -1,34 +1,50 @@
 import librosa
-import IPython.display
-import matplotlib as plt
 import numpy as np
 import pandas as pd
-import statsmodels.api as sm
-from scipy.signal import find_peaks
-from collections import Counter
+import matplotlib.pyplot as plt
+from scipy.signal import argrelextrema
 
-path = "./audio/Merry-Go-Round_Of_Life.mp3"
+def process_audio(path):
+    duration = int(librosa.get_duration(path=path))
+    sr = librosa.get_samplerate(path=path)
 
-duration = int(librosa.get_duration(path=path))
+    data, sample_rate = librosa.load(path, sr=sr, mono=True, duration=duration)
 
-data, sample_rate = librosa.load(path, sr=44100, mono=True, duration=duration)
+    db = librosa.amplitude_to_db(data, ref=np.max)
 
-data_len = len(data)
+    peaks = argrelextrema(db, np.greater, order=int(sr/10))
 
-music = [data[int(i*sample_rate):int((i+0.5)*sample_rate)] for i in np.arange(0, duration, 0.5)]
+    filtered_peaks = peaks[0][np.where(db[peaks[0]] > -15)]
+    filtered_peaks = np.insert(filtered_peaks, 0, 0)
+    filtered_peaks = np.insert(filtered_peaks, len(filtered_peaks), sr*duration-1)
+    db = db + 80
 
-music = pd.DataFrame(music)
+    diff  = []
+    for i, peak in enumerate(filtered_peaks):
+        if(i+1 == len(filtered_peaks)):
+            break
+        diff.append(filtered_peaks[i+1] - filtered_peaks[i])
 
-for index, row in music.iterrows():
-    music.iloc[index,:] = librosa.amplitude_to_db(row)
+    time = []
+    for per in diff:
+        time.append(per/sr)
 
-fig = plt.figure(figsize=(198, 108), dpi=10)
-ax = fig.add_subplot(1, 1, 1)
+    result = []
+    for p, t in zip(filtered_peaks,time):
+        result.append(round(db[p],2))
+        result.append(round(t,2))
 
-for index, row in music.iterrows():
-    ax.scatter(np.arange(len(row)), row, s=1)
+    return result
 
-ax.set_xticks(np.arange(0, len(row), 10))
-ax.set_ylabel('db')
+df = pd.DataFrame(result, columns=['Merry_go_round_test'])
+df = df.round(2)
+df.to_csv('Merry_go_round_test.csv', index=False)
 
-fig.savefig('show_describe.png')
+# plt.figure(figsize=(20, 10))
+# plt.plot(db)
+
+# for peak in filtered_peaks:
+#     plt.scatter(peak, db[peak], color='red')
+
+# plt.savefig('merry_go_round_test')
+# plt.show()
