@@ -14,7 +14,7 @@ def process_audio(path):
 
     peaks = argrelextrema(db, np.greater, order=int(sr/10))
 
-    filtered_peaks = peaks[0][np.where(db[peaks[0]] > -15)]
+    filtered_peaks = peaks[0][np.where(db[peaks[0]] > -25)]
     filtered_peaks = np.insert(filtered_peaks, 0, 0)
     filtered_peaks = np.insert(filtered_peaks, len(filtered_peaks), sr*duration-1)
     db = db + 80
@@ -34,11 +34,22 @@ def process_audio(path):
         result.append(round(db[p],2))
         result.append(round(t,2))
 
+    plt.figure(figsize=(20, 10))
+    plt.plot(db)
+
+    for peak in filtered_peaks:
+        plt.scatter(peak, db[peak], color='red')
+
+    plt.savefig('waltz_test')
+    plt.show()
+
     return result
 
-df = pd.DataFrame(result, columns=['Merry_go_round_test'])
+result = process_audio('sample_audio\\waltz_13.mp3')
+
+df = pd.DataFrame(result, columns=['waltz_13'])
 df = df.round(2)
-df.to_csv('Merry_go_round_test.csv', index=False)
+df.to_csv('waltz_13.csv', index=False)
 
 # plt.figure(figsize=(20, 10))
 # plt.plot(db)
