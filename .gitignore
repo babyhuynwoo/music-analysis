@@ -3,3 +3,4 @@ constants.py
 __pycache__
 .cache
 sample_audio
+data
